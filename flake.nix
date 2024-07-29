@@ -24,13 +24,11 @@
 					${pkgs.rsync}/bin/rsync --mkpath -a ${frontend}/lib/node_modules/frontend/dist/ $out/frontend
 
 					${builtins.concatStringsSep "\n" (builtins.map (handler: ''
-						HANDLERNAME="$(echo '${handler.modulePath}' | xargs)"
-						HANDLERDIR="$(echo $HANDLERNAME | sed 's/\/[^/]*$//')"
-						FILENAME="$(${pkgs.findutils}/bin/find ${handler.package}/bin/ -mindepth 1 -printf "%f" -quit)"
-
-						cp "${handler.package}/bin/$FILENAME" bootstrap
-						mkdir -p "$out/lambda/$HANDLERDIR"
-						${pkgs.zip}/bin/zip "$out/lambda/$HANDLERNAME.zip" bootstrap
+						FILENAME="$(${pkgs.findutils}/bin/find ${handler}/bin/ -mindepth 1 -printf "%f" -quit)"
+						
+						cp "${handler}/bin/$FILENAME" bootstrap
+						mkdir -p "$out/lambda"
+						${pkgs.zip}/bin/zip "$out/lambda/$FILENAME.zip" bootstrap
 						rm bootstrap
 					'') apiHandlers) }
 				'';

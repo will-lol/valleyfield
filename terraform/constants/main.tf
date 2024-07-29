@@ -9,5 +9,9 @@ output "prefix" {
 data "aws_caller_identity" "current" {}
 
 output "account_id" {
- value = data.aws_caller_identity.current.account_id
+	value = data.aws_caller_identity.current.account_id
+}
+
+output "lambda_functions" {
+	value = compact(distinct([for _, v in fileset(path.module, "../../lambda/**") : substr(dirname(v), 13, -1)]))
 }

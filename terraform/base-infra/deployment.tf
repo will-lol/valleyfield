@@ -188,8 +188,6 @@ data "aws_iam_policy_document" "codebuild_policy_data" {
     resources = [
       aws_s3_bucket.codepipeline_bucket.arn,
       "${aws_s3_bucket.codepipeline_bucket.arn}/*",
-      aws_s3_bucket.codebuild_cache.arn,
-      "${aws_s3_bucket.codebuild_cache.arn}/*",
     ]
   }
 
@@ -243,10 +241,6 @@ resource "aws_cloudwatch_log_group" "codebuild_logs" {
   name = "/aws/codebuild/${module.constants.prefix}-codebuild-logs"
 }
 
-resource "aws_s3_bucket" "codebuild_cache" {
-  bucket = "${module.constants.prefix}-codebuild-cache"
-}
-
 resource "aws_codebuild_project" "codebuild" {
   name = "${module.constants.prefix}-codebuild"
   build_timeout = 5
@@ -268,25 +262,21 @@ resource "aws_codebuild_project" "codebuild" {
       artifacts = {
         files = ["**/*"]
         base-directory = "result"
-        secondary-artifacts = {
-          frontend = {
-            base-directory = "frontend"
-            discard-paths = false
-            files = ["**/*"]
+        secondary-artifacts = merge(
+          {for s in module.constants.lambda_functions : s => ({
+            discard-paths = true
+            files = ["lambda/${s}.zip"]
+          })},
+          {
+            frontend = {
+              base-directory = "frontend"
+              discard-paths = false
+              files = ["**/*"]
+            }
           }
-          lambda = {
-            base-directory = "lambda"
-            discard-paths = false
-            files = ["**/*"]
-          }
-        }
+        )
       }
     })
-  }
-
-  cache {
-    type = "S3"
-    location = aws_s3_bucket.codebuild_cache.id
   }
 
   artifacts {
