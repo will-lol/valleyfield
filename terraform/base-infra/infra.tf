@@ -1,11 +1,3 @@
-variable "domain" {
-	type = string
-}
-
-variable "route53_zone_id" {
-	type = string
-}
-
 locals {
 	aws_cloudfront_distribution_cache_policy_ids = {
 		amplify = "2e54312d-136d-493c-8eb9-b001f22f67d2"
@@ -54,7 +46,7 @@ resource "aws_s3_bucket_policy" "allow_distribution" {
 }
 
 locals {
-	s3_origin_id = "${random_uuid.prefix.result}-bucket"
+	s3_origin_id = "${module.constants.prefix}-bucket"
 }
 
 resource "aws_acm_certificate" "cert" {
@@ -89,7 +81,7 @@ resource "aws_acm_certificate_validation" "cert_validation" {
 
 resource "aws_cloudfront_origin_access_control" "distribution_web_files_oac" {
 	provider = aws.us-east-1
-	name = "${random_uuid.prefix.result}-distribution_web_files_oac"
+	name = "${module.constants.prefix}-distribution_web_files_oac"
 	origin_access_control_origin_type = "s3"
 	signing_behavior = "always"
 	signing_protocol = "sigv4"
