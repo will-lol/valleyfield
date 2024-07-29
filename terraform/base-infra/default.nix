@@ -8,7 +8,7 @@
 	'';
 	contents = [
 		# enable flakes
-		(pkgs.writeTextFile {
+		(targetPkgs.writeTextFile {
 			name = "nix.conf";
 			destination = "/etc/nix/nix.conf";
 			text = ''
@@ -17,5 +17,6 @@
 				filter-syscalls = false
 			'';
 		})
+		targetPkgs.bashInteractive
 	];
 }
