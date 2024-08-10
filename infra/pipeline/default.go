@@ -41,8 +41,7 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineCdkS
 	})
 
 	pipeline := pipelines.NewCodePipeline(stack, jsii.String("pipeline"), &pipelines.CodePipelineProps{
-		SelfMutation: jsii.Bool(false),
-		Synth: pipelines.NewShellStep(jsii.String("Synth"), &pipelines.ShellStepProps{
+		Synth: pipelines.NewCodeBuildStep(jsii.String("Synth"), &pipelines.CodeBuildStepProps{
 			Input: pipelines.CodePipelineSource_Connection(&props.GitHubRepoId, &props.GitHubRepoBranch, &pipelines.ConnectionSourceOptions{
 				ConnectionArn: &props.CodeStarConnectionArn,
 			}),
@@ -52,13 +51,11 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineCdkS
 				"npm run build",
 				"nix build .",
 			),
-		}),
-		CodeBuildDefaults: &pipelines.CodeBuildOptions{
 			BuildEnvironment: &awscodebuild.BuildEnvironment{
 				BuildImage:  awscodebuild.LinuxArmBuildImage_FromEcrRepository(ecrRepo, jsii.String("latest")),
 				ComputeType: awscodebuild.ComputeType_SMALL,
 			},
-		},
+		}),
 	})
 
 	pipeline.AddStage(application.NewApplicationStage(stack, "Application", &application.ApplicationStageProps{
