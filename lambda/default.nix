@@ -1,4 +1,4 @@
-{ pkgs, lib, targetPkgs }: [
-	(import ./contact { inherit pkgs lib targetPkgs; })
-	(import ./test { inherit pkgs lib targetPkgs; })
+{ pkgs, lib, targetPkgsCross }: [
+	(import ./contact { inherit pkgs lib targetPkgsCross; })
+	(import ./test { inherit pkgs lib targetPkgsCross; })
 ]

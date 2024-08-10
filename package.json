@@ -1,0 +1,11 @@
+{
+  "name": "valleyfield",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "cdk synth"
+  },
+  "devDependencies": {
+    "cdk": "^2.151.0"
+  }
+}

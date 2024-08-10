@@ -253,9 +253,7 @@ resource "aws_codebuild_project" "codebuild" {
       phases = {
         build = {
           commands = [
-            "ls",
             "nix build",
-            "ls"
           ]
         }
       }

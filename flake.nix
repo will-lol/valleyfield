@@ -14,10 +14,11 @@
 				pkgs = import nixpkgs { inherit system overlays; };
 				lib = import ./lib.nix { inherit pkgs; };
 				
-				targetPkgs = pkgs.pkgsCross.aarch64-multiplatform;
-				apiHandlers = import ./lambda { inherit pkgs lib targetPkgs; };
+				targetPkgsCross = pkgs.pkgsCross.aarch64-multiplatform;
+				targetPkgs = import nixpkgs { inherit overlays; system = "aarch64-linux"; };
+				apiHandlers = import ./lambda { inherit pkgs lib targetPkgsCross; };
 				frontend = import ./frontend { inherit pkgs lib; };
-				infra = import ./terraform/base-infra { inherit pkgs lib targetPkgs nix; };
+				infra = import ./terraform/base-infra { inherit pkgs lib targetPkgs targetPkgsCross nix; };
 
 				buildArtifact = pkgs.runCommand "build-artifact" {} ''
 					mkdir $out
@@ -43,7 +44,7 @@
 					};
 					# defaultPackage = example;
 					devShell = pkgs.mkShell {
-						packages = with pkgs; [ hugo go gopls jq zip nodejs_22 nodePackages.typescript-language-server opentofu terraform-ls ];
+						packages = with pkgs; [ go gopls nodePackages.nodejs nodePackages.typescript-language-server opentofu terraform-ls ];
 						shellHook = ''
 							export AWS_DEFAULT_PROFILE=Valleyfield
 							set -a            
