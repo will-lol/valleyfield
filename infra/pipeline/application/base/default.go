@@ -48,7 +48,11 @@ func NewBaseCdkStack(scope constructs.Construct, id string, props *BaseCdkStackP
 		Sources:           &[]awss3deployment.ISource{awss3deployment.Source_Asset(jsii.String("artifact/frontend"), &awss3assets.AssetOptions{})},
 	})
 
-	apiGw := awsapigateway.NewRestApi(stack, jsii.String("api"), &awsapigateway.RestApiProps{})
+	apiGw := awsapigateway.NewRestApi(stack, jsii.String("api"), &awsapigateway.RestApiProps{
+		DeployOptions: &awsapigateway.StageOptions{
+			StageName: jsii.String("api"),
+		},
+	})
 
 	apiGw.Root().AddCorsPreflight(&awsapigateway.CorsOptions{
 		AllowOrigins: jsii.Strings(fmt.Sprintf("https://%s", props.DomainName)),
@@ -63,7 +67,9 @@ func NewBaseCdkStack(scope constructs.Construct, id string, props *BaseCdkStackP
 	})
 	apiGwTestResource.AddMethod(jsii.String("GET"), awsapigateway.NewLambdaIntegration(apiGwTestResourceBackingLambda, &awsapigateway.LambdaIntegrationOptions{}), &awsapigateway.MethodOptions{})
 
-	apiGwOrigin := awscloudfrontorigins.NewRestApiOrigin(apiGw, &awscloudfrontorigins.RestApiOriginProps{})
+	apiGwOrigin := awscloudfrontorigins.NewRestApiOrigin(apiGw, &awscloudfrontorigins.RestApiOriginProps{
+		OriginPath: jsii.String(""),
+	})
 
 	s3Origin := awscloudfrontorigins.NewS3Origin(webBucket, &awscloudfrontorigins.S3OriginProps{
 		OriginPath: jsii.String("/"),
