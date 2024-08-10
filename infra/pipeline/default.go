@@ -46,8 +46,8 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineCdkS
 				ConnectionArn: &props.CodeStarConnectionArn,
 			}),
 			Commands: jsii.Strings(
-				"nix build .#cdkGo",
 				"npm install",
+				"nix build .#cdkGo",
 				"npm run build",
 				"nix build .",
 			),
