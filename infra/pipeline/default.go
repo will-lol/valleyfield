@@ -41,6 +41,7 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineCdkS
 	})
 
 	pipeline := pipelines.NewCodePipeline(stack, jsii.String("pipeline"), &pipelines.CodePipelineProps{
+		SelfMutation: jsii.Bool(false),
 		Synth: pipelines.NewShellStep(jsii.String("Synth"), &pipelines.ShellStepProps{
 			Input: pipelines.CodePipelineSource_Connection(&props.GitHubRepoId, &props.GitHubRepoBranch, &pipelines.ConnectionSourceOptions{
 				ConnectionArn: &props.CodeStarConnectionArn,
