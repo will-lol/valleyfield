@@ -8,18 +8,21 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscertificatemanager"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscloudfront"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscloudfrontorigins"
-	// "github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsroute53targets"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awss3"
-	// "github.com/aws/aws-cdk-go/awscdk/v2/awss3assets"
-	// "github.com/aws/aws-cdk-go/awscdk/v2/awss3deployment"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awss3assets"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awss3deployment"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 )
 
 type BaseCdkStackProps struct {
 	awscdk.StackProps
-	Cert        *awscertificatemanager.Certificate
-	DomainNames []string
+	Cert         *awscertificatemanager.Certificate
+	DomainNames  []string
+	HostedZoneId string
 }
 
 type BaseCdkStackOutputs struct {
@@ -40,10 +43,10 @@ func NewBaseCdkStack(scope constructs.Construct, id string, props *BaseCdkStackP
 		RemovalPolicy:     awscdk.RemovalPolicy_DESTROY,
 		Versioned:         jsii.Bool(false),
 	})
-	// awss3deployment.NewBucketDeployment(stack, jsii.String("webBucketDeployment"), &awss3deployment.BucketDeploymentProps{
-	// 	DestinationBucket: webBucket,
-	// 	Sources:           &[]awss3deployment.ISource{awss3deployment.Source_Asset(jsii.String("result/frontend"), &awss3assets.AssetOptions{})},
-	// })
+	awss3deployment.NewBucketDeployment(stack, jsii.String("webBucketDeployment"), &awss3deployment.BucketDeploymentProps{
+		DestinationBucket: webBucket,
+		Sources:           &[]awss3deployment.ISource{awss3deployment.Source_Asset(jsii.String("result/frontend"), &awss3assets.AssetOptions{})},
+	})
 
 	apiGw := awsapigateway.NewRestApi(stack, jsii.String("api"), &awsapigateway.RestApiProps{})
 
@@ -56,14 +59,14 @@ func NewBaseCdkStack(scope constructs.Construct, id string, props *BaseCdkStackP
 		AllowOrigins: jsii.Strings(origins...),
 	})
 
-	apiGw.Root().AddResource(jsii.String("test"), &awsapigateway.ResourceOptions{})
-	// apiGwTestResourceBackingLambda := awslambda.NewFunction(stack, jsii.String("apiGwTestResourceBackingLambda"), &awslambda.FunctionProps{
-	// 	Architecture: awslambda.Architecture_ARM_64(),
-	// 	Runtime:      awslambda.Runtime_PROVIDED_AL2023(),
-	// 	Code:         awslambda.AssetCode_FromAsset(jsii.String("result/lambda/test.zip"), &awss3assets.AssetOptions{}),
-	// 	Handler:      jsii.String("bootstrap"),
-	// })
-	// apiGwTestResource.AddMethod(jsii.String("GET"), awsapigateway.NewLambdaIntegration(apiGwTestResourceBackingLambda, &awsapigateway.LambdaIntegrationOptions{}), &awsapigateway.MethodOptions{})
+	apiGwTestResource := apiGw.Root().AddResource(jsii.String("test"), &awsapigateway.ResourceOptions{})
+	apiGwTestResourceBackingLambda := awslambda.NewFunction(stack, jsii.String("apiGwTestResourceBackingLambda"), &awslambda.FunctionProps{
+		Architecture: awslambda.Architecture_ARM_64(),
+		Runtime:      awslambda.Runtime_PROVIDED_AL2023(),
+		Code:         awslambda.AssetCode_FromAsset(jsii.String("result/lambda/test.zip"), &awss3assets.AssetOptions{}),
+		Handler:      jsii.String("bootstrap"),
+	})
+	apiGwTestResource.AddMethod(jsii.String("GET"), awsapigateway.NewLambdaIntegration(apiGwTestResourceBackingLambda, &awsapigateway.LambdaIntegrationOptions{}), &awsapigateway.MethodOptions{})
 
 	apiGwOrigin := awscloudfrontorigins.NewRestApiOrigin(apiGw, &awscloudfrontorigins.RestApiOriginProps{})
 
@@ -90,6 +93,12 @@ func NewBaseCdkStack(scope constructs.Construct, id string, props *BaseCdkStackP
 				Origin:         apiGwOrigin,
 			},
 		},
+	})
+
+	hostedZone := awsroute53.HostedZone_FromHostedZoneId(stack, jsii.String("HostedZone"), &props.HostedZoneId)
+	awsroute53.NewAaaaRecord(stack, jsii.String("CloudfrontRecordAAAA"), &awsroute53.AaaaRecordProps{
+		Zone:   hostedZone,
+		Target: awsroute53.RecordTarget_FromAlias(awsroute53targets.NewCloudFrontTarget(cf)),
 	})
 
 	return stack, BaseCdkStackOutputs{
