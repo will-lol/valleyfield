@@ -1,8 +1,8 @@
 package application
 
 import (
-	"cdk/pipeline/application/base"
-	"cdk/pipeline/application/cert"
+	"infra/pipeline/application/base"
+	"infra/pipeline/application/cert"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/constructs-go/constructs/v10"

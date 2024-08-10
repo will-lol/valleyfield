@@ -6,9 +6,6 @@
 	fromImage = targetPkgsCross.runCommand "transform-hydraJobs-output" {} ''
 		cp ${nix.hydraJobs.dockerImage.aarch64-linux}/image.tar.gz $out
 	'';
-	config = {
-		Env = ["PATH=/root/.nix-profile/bin:/usr/bin:/bin"];
-	};
 	contents = [
 		# enable flakes
 		(targetPkgsCross.writeTextFile {
@@ -21,6 +18,5 @@
 			'';
 		})
 		targetPkgs.bashInteractive
-		targetPkgs.nodePackages.nodejs
 	];
 }

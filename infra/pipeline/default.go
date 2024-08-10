@@ -1,7 +1,7 @@
 package pipeline
 
 import (
-	"cdk/pipeline/application"
+	"infra/pipeline/application"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscodebuild"
@@ -46,9 +46,10 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineCdkS
 				ConnectionArn: &props.CodeStarConnectionArn,
 			}),
 			Commands: jsii.Strings(
-				"nix build .",
+				"nix build .#cdkGo",
 				"npm install",
 				"npm run build",
+				"nix build .",
 			),
 		}),
 		CodeBuildDefaults: &pipelines.CodeBuildOptions{
