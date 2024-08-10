@@ -95,6 +95,11 @@ func NewBaseCdkStack(scope constructs.Construct, id string, props *BaseCdkStackP
 		ZoneName:     &props.DomainName,
 	})
 
+	awsroute53.NewARecord(stack, jsii.String("CloudfrontRecordAAAA"), &awsroute53.ARecordProps{
+		Zone:   hostedZone,
+		Target: awsroute53.RecordTarget_FromAlias(awsroute53targets.NewCloudFrontTarget(cf)),
+	})
+
 	awsroute53.NewAaaaRecord(stack, jsii.String("CloudfrontRecordAAAA"), &awsroute53.AaaaRecordProps{
 		Zone:   hostedZone,
 		Target: awsroute53.RecordTarget_FromAlias(awsroute53targets.NewCloudFrontTarget(cf)),
