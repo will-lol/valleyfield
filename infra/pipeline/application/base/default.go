@@ -21,7 +21,7 @@ import (
 type BaseCdkStackProps struct {
 	awscdk.StackProps
 	Cert         *awscertificatemanager.Certificate
-	DomainNames  []string
+	DomainName   string
 	HostedZoneId string
 }
 
@@ -45,25 +45,20 @@ func NewBaseCdkStack(scope constructs.Construct, id string, props *BaseCdkStackP
 	})
 	awss3deployment.NewBucketDeployment(stack, jsii.String("webBucketDeployment"), &awss3deployment.BucketDeploymentProps{
 		DestinationBucket: webBucket,
-		Sources:           &[]awss3deployment.ISource{awss3deployment.Source_Asset(jsii.String("result/frontend"), &awss3assets.AssetOptions{})},
+		Sources:           &[]awss3deployment.ISource{awss3deployment.Source_Asset(jsii.String("artifact/frontend"), &awss3assets.AssetOptions{})},
 	})
 
 	apiGw := awsapigateway.NewRestApi(stack, jsii.String("api"), &awsapigateway.RestApiProps{})
 
-	origins := make([]string, 0, len(props.DomainNames))
-	for _, domain := range props.DomainNames {
-		origins = append(origins, fmt.Sprintf("https://%s", domain))
-	}
-
 	apiGw.Root().AddCorsPreflight(&awsapigateway.CorsOptions{
-		AllowOrigins: jsii.Strings(origins...),
+		AllowOrigins: jsii.Strings(fmt.Sprintf("https://%s", props.DomainName)),
 	})
 
 	apiGwTestResource := apiGw.Root().AddResource(jsii.String("test"), &awsapigateway.ResourceOptions{})
 	apiGwTestResourceBackingLambda := awslambda.NewFunction(stack, jsii.String("apiGwTestResourceBackingLambda"), &awslambda.FunctionProps{
 		Architecture: awslambda.Architecture_ARM_64(),
 		Runtime:      awslambda.Runtime_PROVIDED_AL2023(),
-		Code:         awslambda.AssetCode_FromAsset(jsii.String("result/lambda/test.zip"), &awss3assets.AssetOptions{}),
+		Code:         awslambda.AssetCode_FromAsset(jsii.String("artifact/lambda/test.zip"), &awss3assets.AssetOptions{}),
 		Handler:      jsii.String("bootstrap"),
 	})
 	apiGwTestResource.AddMethod(jsii.String("GET"), awsapigateway.NewLambdaIntegration(apiGwTestResourceBackingLambda, &awsapigateway.LambdaIntegrationOptions{}), &awsapigateway.MethodOptions{})
@@ -76,7 +71,7 @@ func NewBaseCdkStack(scope constructs.Construct, id string, props *BaseCdkStackP
 	cf := awscloudfront.NewDistribution(stack, jsii.String("distribution"), &awscloudfront.DistributionProps{
 		HttpVersion:       awscloudfront.HttpVersion_HTTP2_AND_3,
 		Certificate:       *props.Cert,
-		DomainNames:       jsii.Strings(props.DomainNames...),
+		DomainNames:       jsii.Strings(props.DomainName),
 		EnableIpv6:        jsii.Bool(true),
 		DefaultRootObject: jsii.String("index.html"),
 		DefaultBehavior: &awscloudfront.BehaviorOptions{
@@ -95,7 +90,11 @@ func NewBaseCdkStack(scope constructs.Construct, id string, props *BaseCdkStackP
 		},
 	})
 
-	hostedZone := awsroute53.HostedZone_FromHostedZoneId(stack, jsii.String("HostedZone"), &props.HostedZoneId)
+	hostedZone := awsroute53.HostedZone_FromHostedZoneAttributes(stack, jsii.String("HostedZone"), &awsroute53.HostedZoneAttributes{
+		HostedZoneId: &props.HostedZoneId,
+		ZoneName:     &props.DomainName,
+	})
+
 	awsroute53.NewAaaaRecord(stack, jsii.String("CloudfrontRecordAAAA"), &awsroute53.AaaaRecordProps{
 		Zone:   hostedZone,
 		Target: awsroute53.RecordTarget_FromAlias(awsroute53targets.NewCloudFrontTarget(cf)),

@@ -41,8 +41,9 @@ func NewApplicationStage(scope constructs.Construct, id string, props *Applicati
 			},
 			CrossRegionReferences: jsii.Bool(true),
 		},
-		Cert:        certStackOutputs.Cert,
-		DomainNames: []string{props.Domain},
+		Cert:         certStackOutputs.Cert,
+		DomainName:   props.Domain,
+		HostedZoneId: props.HostedZoneId,
 	})
 
 	return stage

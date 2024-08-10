@@ -19,7 +19,7 @@
 				apiHandlers = import ./lambda { inherit pkgs lib targetPkgsCross; };
 				frontend = import ./frontend { inherit pkgs lib; };
 				infra = import ./pipeline { inherit pkgs lib targetPkgs targetPkgsCross nix; };
-				cdkGo = import ./infra { inherit pkgs; };
+				goCdkBinary = import ./infra { inherit pkgs; };
 
 				buildArtifact = pkgs.runCommand "build-artifact" {} ''
 					mkdir $out
@@ -42,7 +42,7 @@
 						api = apiHandlers;
 						frontend = frontend;
 						codebuild = infra;
-						cdkGo = cdkGo;
+						goCdkBinary = goCdkBinary;
 					};
 					# defaultPackage = example;
 					devShell = pkgs.mkShell {
