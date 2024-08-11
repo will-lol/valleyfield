@@ -18,7 +18,7 @@
 				targetPkgs = import nixpkgs { inherit overlays; system = "aarch64-linux"; };
 				apiHandlers = import ./lambda { inherit pkgs lib targetPkgsCross; };
 				frontend = import ./frontend { inherit pkgs lib; };
-				infra = import ./infra/pipeline { inherit pkgs lib targetPkgs targetPkgsCross nix; };
+				codebuildImg = import ./infra/pipeline { inherit pkgs lib targetPkgs targetPkgsCross nix; };
 				goCdkBinary = import ./infra { inherit pkgs; };
 
 				buildArtifact = pkgs.runCommand "build-artifact" {} ''
@@ -41,18 +41,20 @@
 						artifact = buildArtifact;
 						api = apiHandlers;
 						frontend = frontend;
-						codebuild = infra;
+						codebuild = codebuildImg;
 						goCdkBinary = goCdkBinary;
 					};
 					# defaultPackage = example;
-					devShell = pkgs.mkShell {
-						packages = with pkgs; [ go gopls nodePackages.nodejs nodePackages.typescript-language-server opentofu terraform-ls ];
-						shellHook = ''
-							export AWS_DEFAULT_PROFILE=Valleyfield
-							set -a            
-							source .env
-							set +a
-						'';
+					devShells = {
+						default = pkgs.mkShell {
+							packages = with pkgs; [ go gopls nodePackages.nodejs nodePackages.typescript-language-server opentofu terraform-ls ];
+							shellHook = ''
+								export AWS_DEFAULT_PROFILE=Valleyfield
+							'';
+						};
+						buildShell = pkgs.mkShell {
+							packages = with pkgs; [nodePackages.nodejs];
+						};
 					};
 				}
 		);

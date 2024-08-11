@@ -6,9 +6,6 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awscodebuild"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsecr"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awss3"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awsssm"
 	"github.com/aws/aws-cdk-go/awscdk/v2/pipelines"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
@@ -50,6 +47,7 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineCdkS
 				ConnectionArn: &props.CodeStarConnectionArn,
 			}),
 			Commands: jsii.Strings(
+				"nix develop .#buildShell",
 				"npm install",
 				"./synth.sh",
 			),
