@@ -58,6 +58,8 @@
 						default = cdk;
 						cdk = cdk;
 						codebuild = codebuild;
+						artifact = artifact;
+						goCdkBinary = goCdkBinary;
 					};
 					# defaultPackage = example;
 					devShells = {
