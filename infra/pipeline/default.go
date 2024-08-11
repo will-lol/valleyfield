@@ -60,13 +60,6 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineCdkS
 		}),
 	})
 
-	binaryCacheBucket := awss3.NewBucket(stack, jsii.String("binaryCacheBucket"), &awss3.BucketProps{})
-	binaryCacheBucket.GrantReadWrite(pipeline.Pipeline().Role(), nil)
-	awsssm.NewStringParameter(stack, jsii.String("binaryCacheBucketParam"), &awsssm.StringParameterProps{
-		ParameterName: jsii.String("/prod/ci/nix/s3binarycache"),
-		StringValue:   binaryCacheBucket.BucketName(),
-	})
-
 	pipeline.AddStage(application.NewApplicationStage(stack, "Application", &application.ApplicationStageProps{
 		StageProps:   awscdk.StageProps{},
 		Domain:       props.Domain,
