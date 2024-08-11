@@ -18,5 +18,6 @@
 			'';
 		})
 		targetPkgs.bashInteractive
+		targetPkgs.awscli2
 	];
 }

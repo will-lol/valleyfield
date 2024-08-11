@@ -18,7 +18,7 @@
 				targetPkgs = import nixpkgs { inherit overlays; system = "aarch64-linux"; };
 				apiHandlers = import ./lambda { inherit pkgs lib targetPkgsCross; };
 				frontend = import ./frontend { inherit pkgs lib; };
-				infra = import ./pipeline { inherit pkgs lib targetPkgs targetPkgsCross nix; };
+				infra = import ./infra/pipeline { inherit pkgs lib targetPkgs targetPkgsCross nix; };
 				goCdkBinary = import ./infra { inherit pkgs; };
 
 				buildArtifact = pkgs.runCommand "build-artifact" {} ''
