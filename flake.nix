@@ -18,10 +18,10 @@
 				targetPkgs = import nixpkgs { inherit overlays; system = "aarch64-linux"; };
 				apiHandlers = import ./lambda { inherit pkgs lib targetPkgsCross; };
 				frontend = import ./frontend { inherit pkgs lib; };
-				codebuildImg = import ./infra/pipeline { inherit pkgs lib targetPkgs targetPkgsCross nix; };
+				codebuild = import ./infra/pipeline { inherit pkgs lib targetPkgs targetPkgsCross nix; };
 				goCdkBinary = import ./infra { inherit pkgs; };
 
-				buildArtifact = pkgs.runCommand "build-artifact" {} ''
+				artifact = pkgs.runCommand "build-artifact" {} ''
 					mkdir $out
 					${pkgs.rsync}/bin/rsync --mkpath -a ${frontend}/lib/node_modules/frontend/dist/ $out/frontend
 
@@ -34,15 +34,30 @@
 						rm bootstrap
 					'') apiHandlers) }
 				'';
+
+				cdk = pkgs.buildNpmPackage {
+					pname = "cdk";
+					version = "0.0.1";
+					src = ./.;
+					npmDepsHash = "sha256-NgIUI7Ik1yr24rgh5Iz574vRCVQaFIHsnWjApXgRaDY=";
+					npmPackFlags = ["--ignore-scripts"];
+					nativeBuildInputs = [goCdkBinary];
+					buildPhase = ''
+						ln -s ${goCdkBinary} goCdkBinary
+						ln -s ${artifact} artifact
+						npm run build
+					'';
+					installPhase = ''
+						mkdir -p $out
+						cp -r cdk.out/* $out
+					'';
+				};
 			in
 				{
 					packages = {
-						default = buildArtifact;
-						artifact = buildArtifact;
-						api = apiHandlers;
-						frontend = frontend;
-						codebuild = codebuildImg;
-						goCdkBinary = goCdkBinary;
+						default = cdk;
+						cdk = cdk;
+						codebuild = codebuild;
 					};
 					# defaultPackage = example;
 					devShells = {

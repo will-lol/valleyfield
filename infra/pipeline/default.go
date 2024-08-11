@@ -47,9 +47,7 @@ func NewPipelineStack(scope constructs.Construct, id string, props *PipelineCdkS
 				ConnectionArn: &props.CodeStarConnectionArn,
 			}),
 			Commands: jsii.Strings(
-				"nix develop .#buildShell",
-				"npm install",
-				"./synth.sh",
+				"nix build .#cdk -o cdk.out",
 			),
 			BuildEnvironment: &awscodebuild.BuildEnvironment{
 				BuildImage:  awscodebuild.LinuxArmBuildImage_FromEcrRepository(ecrRepo, jsii.String("latest")),

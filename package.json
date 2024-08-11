@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "cdk synth"
+    "build": "cdk synth --validation false --lookups false"
   },
   "devDependencies": {
     "cdk": "^2.151.0"
